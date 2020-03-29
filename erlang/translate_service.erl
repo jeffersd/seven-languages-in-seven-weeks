@@ -1,6 +1,6 @@
 -module(translate_service).
--export([loop/0, translate/2]).
--export([start/0, kill/1]).
+-export([loop/0, translate/1]).
+-export([start/0, kill/0]).
 loop() ->
     receive
         exit ->
@@ -19,16 +19,16 @@ loop() ->
             loop()
 end.
 
-translate(To, Word) ->
-    To ! {self(), Word},
+translate(Word) ->
+    translate_service ! {self(), Word},
     receive
         Translation -> Translation
 end.
 
-kill(Pid) ->
-    Pid ! exit.
+kill() ->
+    translate_service ! exit.
 
 start() ->
     Pid = spawn_link(fun loop/0),
-    register(translator, Pid),
+    register(translate_service, Pid),
     {ok, Pid}.
